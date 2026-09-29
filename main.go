@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"github.com/alexbudy/go_spanish_rewrite/internal/log"
@@ -31,6 +32,13 @@ func runInit()  error {
 	defer s.Close()
 
 	log.Debug("Database ready at %s\n", defaultDBPath)
+
+	ctx := context.Background()
+
+	// Ensure schema is 
+	if err := s.EnsureSchema(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -21,3 +21,8 @@ func DebugSQL(format string, args ...any) {
 		log.Printf("[DEBUG-SQL] " + format, args...)
 	}
 }
+
+// Error logs a formatted error message.
+func Error(format string, args ...any) {
+	log.Printf("[ERROR] " + format, args...)
+}

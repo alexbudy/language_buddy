@@ -14,6 +14,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// File for setting up the store
+
 // Store wraps a SQLite database connection.
 type Store struct {
 	db *sql.DB
@@ -70,7 +72,7 @@ func (s *Store) SeedWords(ctx context.Context) error {
 		return fmt.Errorf("store: count words: %w", err)
 	}
 	if count > 0 {
-		log.Debug("%d Words) already seeded, not seeding", count)
+		log.Debug("%d words already seeded, not seeding", count)
 		return nil
 	}
 
@@ -124,5 +126,9 @@ func (s *Store) SeedWords(ctx context.Context) error {
 func (s *Store) migrate(ctx context.Context) error {
 	// add migrations here
 	log.Debug("Running migrations...")
+	newMigrations := 0
+	
+	log.Debug("New migrations ran: %d", newMigrations)
 	return nil
 }
+

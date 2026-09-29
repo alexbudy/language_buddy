@@ -6,6 +6,8 @@ import (
 
 	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	"github.com/alexbudy/go_spanish_rewrite/internal/store"
+	"github.com/alexbudy/go_spanish_rewrite/internal/tui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 const defaultDBPath = "my_db.db" // sqLite db path
@@ -24,8 +26,12 @@ func main() {
 	log.Debug("Starting up...")
 	err := runInit()
 	if err != nil {panic(err)}
+
+	err = run()
+	if err != nil {panic(err)}
 }
 
+// runInit ensures the database is ready
 func runInit()  error {
 	s, err := store.Open(defaultDBPath)
 	if err != nil {
@@ -48,7 +54,19 @@ func runInit()  error {
 		return err
 	}
 
-
-
 	return nil
+}
+
+// run the application
+func run() error {
+	s, err := store.Open(defaultDBPath)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+
+	p := tea.NewProgram(tui.New(s))
+	_, err = p.Run()
+	return err
 }

@@ -6,17 +6,27 @@ import (
 
 	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	"github.com/alexbudy/go_spanish_rewrite/internal/store"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 // New creates a TUI model backed by s.
 func New(s *store.Store) Model {
-	m := Model{store: s}
+	m := Model{store: s, newProfileInput: createProfileInput()}
 
 	// load profiles into m.profileMenu
 	m.loadProfiles()
 
 	return m
+}
+
+func createProfileInput() textinput.Model {
+	t1 := textinput.New()
+	t1.Placeholder = "Enter a name for your profile"
+	t1.CharLimit = 40
+	t1.Width = 40
+
+	return t1
 }
 
 // loads profiles from DB, attaches to the model, builds the menu, and sets the screen
@@ -52,6 +62,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.screen {
 		case screenProfileSelect:
 			return m.updateProfileSelect(msg)
+		case screenNewProfile:
+			return m.updateNewProfile(msg)
 		case screenGoodbye:
 			return m, tea.Quit
 	}
@@ -63,6 +75,8 @@ func (m Model) View() string {
 	switch m.screen {
 	case screenProfileSelect:
 		return m.viewProfileSelect()
+	case screenNewProfile:
+		return m.viewNewProfile()
 	case screenGoodbye:
 		return titleStyle.Render("Exiting the program, thanks for training!") + "\n"
 	}

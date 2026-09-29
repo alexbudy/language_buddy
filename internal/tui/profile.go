@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -85,15 +86,57 @@ func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch selected := m.profileMenu.selected(); selected.value {
 		case exitValue:
 			m.screen = screenGoodbye
-		// case newProfileValue:
-		// 	m.newProfileInput.SetValue("")
-		// 	m.newProfileInput.Focus()
-		// 	m.newProfileErr = ""
-		// 	m.screen = screenNewProfile
-		// 	return m, textinput.Blink
+		case newProfileValue:
+			m.newProfileInput.Reset()
+			m.newProfileInput.Focus()
+			m.newProfileErr = ""
+			m.screen = screenNewProfile
+			return m, textinput.Blink
 		}
 	case "q", "esc":
 		return m, tea.Quit
 	}
 	return m, nil
 }
+
+
+// screenNewProfile functions
+func (m Model) viewNewProfile() string {
+	var b strings.Builder
+	b.WriteString(promptStyle.Render("What would you like to call this profile?"))
+	b.WriteString("\n\n")
+	b.WriteString(m.newProfileInput.View())
+	if m.newProfileErr != "" {
+		b.WriteString("\n\n")
+		b.WriteString(errorStyle.Render(m.newProfileErr))
+	}
+	b.WriteString(helpStyle.Render("\n\nenter to confirm • esc to go back"))
+	return b.String()
+}
+
+func (m *Model) updateNewProfile(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+			case "enter":
+				name := m.newProfileInput.Value()
+				if name == "" {
+					m.newProfileErr = "Please enter a name for your profile"
+					return m, nil
+				}
+
+				// Create profile.. TODO
+
+				m.screen = screenProfileSelect
+				return m, nil
+			case "esc":
+				m.screen = screenProfileSelect
+				return m, nil
+			}
+		}
+
+		var cmd tea.Cmd
+		m.newProfileInput, cmd = m.newProfileInput.Update(msg)
+
+		return m, cmd
+	}

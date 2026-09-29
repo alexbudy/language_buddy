@@ -8,6 +8,8 @@ type screen int
 
 const (
 	screenProfileSelect screen = iota
+
+	screenGoodbye
 )
 
 // Model is the TUI model driving the application

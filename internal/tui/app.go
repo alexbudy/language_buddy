@@ -52,6 +52,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.screen {
 		case screenProfileSelect:
 			return m.updateProfileSelect(msg)
+		case screenGoodbye:
+			return m, tea.Quit
 	}
 	return m, nil
 }
@@ -61,6 +63,8 @@ func (m Model) View() string {
 	switch m.screen {
 	case screenProfileSelect:
 		return m.viewProfileSelect()
+	case screenGoodbye:
+		return titleStyle.Render("Exiting the program, thanks for training!") + "\n"
 	}
 	return "Shouldn't come here" // shouldnt come here
 } 

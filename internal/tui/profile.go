@@ -47,7 +47,7 @@ func (m *Model) viewProfileSelect() string {
 	b.WriteString(m.profileMenu.view())
 
 
-	b.WriteString(helpStyle.Render("\n↑/↓ to navigate • enter to select • r to rename a profile • [DEL]/'d' to delete a profile • q to quit"))
+	b.WriteString(helpStyle.Render("↑/↓ to navigate • enter to select • r to rename a profile • [DEL]/'d' to delete a profile • q to quit"))
 	return b.String()
  }
 
@@ -81,6 +81,17 @@ func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.profileMenu.up()
 	case "down", "j":
 		m.profileMenu.down()
+	case "enter":
+		switch selected := m.profileMenu.selected(); selected.value {
+		case exitValue:
+			m.screen = screenGoodbye
+		// case newProfileValue:
+		// 	m.newProfileInput.SetValue("")
+		// 	m.newProfileInput.Focus()
+		// 	m.newProfileErr = ""
+		// 	m.screen = screenNewProfile
+		// 	return m, textinput.Blink
+		}
 	case "q", "esc":
 		return m, tea.Quit
 	}

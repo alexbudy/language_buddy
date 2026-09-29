@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -120,13 +121,20 @@ func (m *Model) updateNewProfile(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 			case "enter":
 				name := m.newProfileInput.Value()
-				if name == "" {
-					m.newProfileErr = "Please enter a name for your profile"
+				if !isValidProfileName(name) {
+					m.newProfileErr = "Please enter a valid name for your profile" + name
 					return m, nil
 				}
 
-				// Create profile.. TODO
+				profile, err := m.store.StoreProfile(context.Background(), name)
 
+				if err != nil {
+					m.newProfileErr = "Something went wrong creating the profile: " + err.Error()
+					return m, nil
+				}
+
+				m.existingProfiles = append(m.existingProfiles, profile)
+				m.buildProfileMenu() // rebuild profile menu with new profile
 				m.screen = screenProfileSelect
 				return m, nil
 			case "esc":
@@ -135,8 +143,33 @@ func (m *Model) updateNewProfile(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		var cmd tea.Cmd
-		m.newProfileInput, cmd = m.newProfileInput.Update(msg)
+	var cmd tea.Cmd
+	m.newProfileInput, cmd = m.newProfileInput.Update(msg)
 
-		return m, cmd
+	return m, cmd
+}
+
+// Somewhat arbitrary profile name validation:
+// 3 letters min, have one char, spaces, dashes, underscores ok, everything else not
+func isValidProfileName(name string) bool {
+	if len(name) < 3 {
+		return false
 	}
+	hasLetter := false
+
+	for _, c := range name {
+		switch {
+		case (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'):
+			hasLetter = true
+		case c >= '0' && c <= '9':
+			// allowed
+		case c == ' ', c == '-', c == '_':
+			// allowed
+		default:
+			return false
+		}
+
+	}
+
+	return hasLetter
+}

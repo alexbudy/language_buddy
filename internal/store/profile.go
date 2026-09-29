@@ -45,3 +45,35 @@ func (s *Store) GetProfiles(ctx context.Context) ([]Profile, error) {
 
 	return profiles, nil
 }
+
+// StoreProfile creates a new profile with the given name.
+func (s *Store) StoreProfile(ctx context.Context, profName string) (Profile, error) {
+	storeProfileQry := `INSERT INTO profiles (name) VALUES (?)`
+	var profile Profile
+	_, err := s.db.ExecContext(ctx, storeProfileQry, profName)
+	if err != nil {
+		return Profile{}, err
+	}
+	log.DebugSQL("Successfully inserted %s for profile %s", storeProfileQry, profName)
+
+	profile, err = s.GetProfile(ctx, profName)
+	if err != nil {
+		return Profile{}, err
+	}
+	return profile, nil
+}
+
+// GetProfile returns the profile with the given name.
+func (s *Store) GetProfile(ctx context.Context, profName string) (Profile, error) {
+	var profile Profile
+	getProfileQry := `SELECT id, name, enable_speech, default_num_questions, 
+						default_num_answers, lang1, lang2 FROM profiles 
+						WHERE deleted_at IS NULL AND name = ?`
+	row := s.db.QueryRowContext(ctx, getProfileQry, profName)
+	if err := row.Scan(&profile.ID, &profile.Name, &profile.EnableSpeech, &profile.DefaultNumQuestions, &profile.DefaultNumAnswers, &profile.Lang1, &profile.Lang2); err != nil {
+		return Profile{}, fmt.Errorf("store: get profile: %w", err)
+	}
+	log.DebugSQL("Successfully retrieved %s for profile %s", getProfileQry, profName)
+	return profile, nil
+
+}

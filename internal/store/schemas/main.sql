@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 CREATE TABLE IF NOT EXISTS rankings (
   profile_id INTEGER NOT NULL,
-  noun_id INTEGER NOT NULL,
+  word_id INTEGER NOT NULL,
   en_to_es REAL NOT NULL DEFAULT 0,
   es_to_en REAL NOT NULL DEFAULT 0,
   en_to_uk REAL NOT NULL DEFAULT 0,
@@ -30,6 +30,6 @@ CREATE TABLE IF NOT EXISTS rankings (
   es_to_uk REAL NOT NULL DEFAULT 0,
   uk_to_es REAL NOT NULL DEFAULT 0,
   FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
-  FOREIGN KEY(noun_id) REFERENCES nouns(id) ON DELETE CASCADE,
-  UNIQUE(profile_id, noun_id)
+  FOREIGN KEY(word_id) REFERENCES words(id) ON DELETE CASCADE,
+  UNIQUE(profile_id, word_id)
 );

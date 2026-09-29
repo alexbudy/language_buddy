@@ -67,7 +67,7 @@ func (s *Store) SeedWords(ctx context.Context) error {
 
 	var count int
 	if err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM words").Scan(&count); err != nil {
-		return fmt.Errorf("store: count nouns: %w", err)
+		return fmt.Errorf("store: count words: %w", err)
 	}
 	if count > 0 {
 		log.Debug("%d Words) already seeded, not seeding", count)
@@ -77,7 +77,7 @@ func (s *Store) SeedWords(ctx context.Context) error {
 	reader := csv.NewReader(strings.NewReader(wordsCSV))
 	header, err := reader.Read()
 	if err != nil {
-		return fmt.Errorf("store: read nouns header: %w", err)
+		return fmt.Errorf("store: read words header: %w", err)
 	}
 	log.Debug("Found header: %v", header)
 
@@ -88,14 +88,14 @@ func (s *Store) SeedWords(ctx context.Context) error {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("store: seed nouns: %w", err)
+		return fmt.Errorf("store: seed words: %w", err)
 	}
 	defer tx.Rollback()
 
 	instStmt := "INSERT INTO words (english, spanish, ukrainian) VALUES (?, ?, ?)"
 	stmt, err := tx.PrepareContext(ctx, instStmt)
 	if err != nil {
-		return fmt.Errorf("store: seed nouns: %w", err)
+		return fmt.Errorf("store: seed words: %w", err)
 	}
 	defer stmt.Close()
 
@@ -113,9 +113,9 @@ func (s *Store) SeedWords(ctx context.Context) error {
 		spanish := row[colIdx["spanish"]]
 		ukrainian := row[colIdx["ukrainian"]]
 		if _, err := stmt.ExecContext(ctx, english, spanish, ukrainian); err != nil {
-			return fmt.Errorf("store: insert noun %q: %w", english, err)
+			return fmt.Errorf("store: insert word %q: %w", english, err)
 		}
-		log.DebugSQL("Inserted noun %q into words table", english)
+		log.DebugSQL("Inserted word %q into words table", english)
 	}
 
 	return tx.Commit()

@@ -4,7 +4,11 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"encoding/csv"
+	"errors"
 	"fmt"
+	"io"
+	"strings"
 
 	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	_ "modernc.org/sqlite"
@@ -54,10 +58,71 @@ func (s *Store) EnsureSchema(ctx context.Context) error {
 
 }
 
+//go:embed data/words.csv
+var wordsCSV string
 
+// SeedWords seeds the database with the initial word data.
+func (s *Store) SeedWords(ctx context.Context) error {
+	log.Debug("Seeding words...")
+
+	var count int
+	if err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM words").Scan(&count); err != nil {
+		return fmt.Errorf("store: count nouns: %w", err)
+	}
+	if count > 0 {
+		log.Debug("%d Words) already seeded, not seeding", count)
+		return nil
+	}
+
+	reader := csv.NewReader(strings.NewReader(wordsCSV))
+	header, err := reader.Read()
+	if err != nil {
+		return fmt.Errorf("store: read nouns header: %w", err)
+	}
+	log.Debug("Found header: %v", header)
+
+	colIdx := make(map[string]int, len(header))
+	for i, name := range header {
+		colIdx[name] = i
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("store: seed nouns: %w", err)
+	}
+	defer tx.Rollback()
+
+	instStmt := "INSERT INTO words (english, spanish, ukrainian) VALUES (?, ?, ?)"
+	stmt, err := tx.PrepareContext(ctx, instStmt)
+	if err != nil {
+		return fmt.Errorf("store: seed nouns: %w", err)
+	}
+	defer stmt.Close()
+
+	log.DebugSQL("Running statement for each word: %s", instStmt)
+
+	for {
+		row, err := reader.Read()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return fmt.Errorf("store: read words row: %w", err)
+		}
+		english := row[colIdx["english"]]
+		spanish := row[colIdx["spanish"]]
+		ukrainian := row[colIdx["ukrainian"]]
+		if _, err := stmt.ExecContext(ctx, english, spanish, ukrainian); err != nil {
+			return fmt.Errorf("store: insert noun %q: %w", english, err)
+		}
+		log.DebugSQL("Inserted noun %q into words table", english)
+	}
+
+	return tx.Commit()
+}
 
 func (s *Store) migrate(ctx context.Context) error {
 	// add migrations here
-	log.Debug("Running migrations")
+	log.Debug("Running migrations...")
 	return nil
 }

@@ -11,12 +11,15 @@ import (
 const defaultDBPath = "my_db.db" // sqLite db path
 
 var debug bool
+var debugSQLStmts bool
 
 func main() {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
+	flag.BoolVar(&debugSQLStmts, "debug-sql", false, "enable SQL debug logging")
 	flag.Parse()
 
 	log.DebugEnabled = debug
+	log.DebugSQLEnabled = debugSQLStmts
 
 	log.Debug("Starting up...")
 	err := runInit()
@@ -35,10 +38,17 @@ func runInit()  error {
 
 	ctx := context.Background()
 
-	// Ensure schema is 
+	// Ensure schema is loaded
 	if err := s.EnsureSchema(ctx); err != nil {
 		return err
 	}
+
+	// Seed words from csv
+	if err := s.SeedWords(ctx); err != nil {
+		return err
+	}
+
+
 
 	return nil
 }

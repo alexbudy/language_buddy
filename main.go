@@ -1,25 +1,36 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 
+	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	"github.com/alexbudy/go_spanish_rewrite/internal/store"
 )
 
 const defaultDBPath = "my_db.db" // sqLite db path
 
+var debug bool
+
 func main() {
-	fmt.Println("Hello World")
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
+	flag.Parse()
+
+	log.DebugEnabled = debug
+
+	log.Debug("Starting up...")
 	err := runInit()
 	if err != nil {panic(err)}
 }
 
 func runInit()  error {
 	s, err := store.Open(defaultDBPath)
-	
+	if err != nil {
+		return err
+	}
+
 	defer s.Close()
 
-	fmt.Println("Hello world opened")
+	log.Debug("Database ready at %s\n", defaultDBPath)
 
-	return err
+	return nil
 }

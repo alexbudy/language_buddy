@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -50,9 +51,38 @@ func (m *Model) viewProfileSelect() string {
 	return b.String()
  }
 
+ // updateProfileSelect is the handler for the profile selection menu
 func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) { 
-	
+	keyMsg, ok := msg.(tea.KeyMsg)
+	if !ok {
+		return m, nil
+	}
 
+	// Allow selecting a profile or option (new profile, exit) by number (1-based), skip non-selectable items
+	n, err := strconv.Atoi(keyMsg.String())
+	if err == nil { // 1-9 was pressed
+		if n >= 1 && n <= len(m.profileMenu.items) {
+			selectableNumber := 0
+
+			for i, item := range m.profileMenu.items {
+				if !item.selectable {
+					continue
+				}
+				selectableNumber++
+				if selectableNumber == n {
+					m.profileMenu.cursor = i
+				}
+			}
+		}
+	}
+
+	switch keyMsg.String() {
+	case "up", "k":
+		m.profileMenu.up()
+	case "down", "j":
+		m.profileMenu.down()
+	case "q", "esc":
+		return m, tea.Quit
+	}
 	return m, nil
-
 }

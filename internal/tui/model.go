@@ -10,6 +10,7 @@ type screen int
 const (
 	screenProfileSelect screen = iota
 	screenNewProfile
+	screenDeleteProfileConfirm
 	screenGoodbye
 )
 
@@ -23,6 +24,13 @@ type Model struct {
 
 	newProfileInput textinput.Model
 	newProfileErr string
+
+	profileToDelete string
+	delProfileErr string // error for when choosing wrong entry for deletion
+	invalidDeletePhraseErr string // error for when user typed invalid deletion phrase
+	deleteProfileConfirmMenu choiceList
+	specialDeletePhraseInput   textinput.Model
+
 
 	existingProfiles []store.Profile // all active profiles
 }

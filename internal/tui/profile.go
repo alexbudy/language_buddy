@@ -49,6 +49,11 @@ func (m *Model) viewProfileSelect() string {
 	b.WriteString(m.profileMenu.view())
 
 
+	if m.delProfileErr != "" {
+		b.WriteString("\n")
+		b.WriteString(errorStyle.Render(m.delProfileErr))
+	}
+
 	b.WriteString(helpStyle.Render("↑/↓ to navigate • enter to select • r to rename a profile • [DEL]/'d' to delete a profile • q to quit"))
 	return b.String()
  }
@@ -83,6 +88,16 @@ func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.profileMenu.up()
 	case "down", "j":
 		m.profileMenu.down()
+	case "delete", "d":
+		selected := m.profileMenu.selected()
+		if selected.value == exitValue || selected.value == newProfileValue {
+			m.delProfileErr = "Invalid deletion option selected"
+			break
+		}
+
+		m.profileToDelete = selected.value        // profile to delete
+		m.specialDeletePhraseInput.Reset()
+		m.screen = screenDeleteProfileConfirm
 	case "enter":
 		switch selected := m.profileMenu.selected(); selected.value {
 		case exitValue:

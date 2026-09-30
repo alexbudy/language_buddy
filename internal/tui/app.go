@@ -12,7 +12,9 @@ import (
 
 // New creates a TUI model backed by s.
 func New(s *store.Store) Model {
-	m := Model{store: s, newProfileInput: createProfileInput()}
+	m := Model{store: s, newProfileInput:
+		createProfileInput(), 
+		specialDeletePhraseInput: createSpecialDeletePhraseInput()}
 
 	// load profiles into m.profileMenu
 	m.loadProfiles()
@@ -64,6 +66,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateProfileSelect(msg)
 		case screenNewProfile:
 			return m.updateNewProfile(msg)
+		case screenDeleteProfileConfirm:
+			return m.updateDeleteProfileConfirm(msg)
 		case screenGoodbye:
 			return m, tea.Quit
 	}
@@ -75,6 +79,8 @@ func (m Model) View() string {
 	switch m.screen {
 	case screenProfileSelect:
 		return m.viewProfileSelect()
+	case screenDeleteProfileConfirm:
+		return m.viewDeleteProfileConfirm()
 	case screenNewProfile:
 		return m.viewNewProfile()
 	case screenGoodbye:

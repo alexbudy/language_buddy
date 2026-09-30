@@ -77,3 +77,14 @@ func (s *Store) GetProfile(ctx context.Context, profName string) (Profile, error
 	return profile, nil
 
 }
+
+// DeleteProfile deletes the profile with the given name.
+func (s *Store) DeleteProfile(ctx context.Context, profName string) error {
+	deleteProfileQry := `DELETE FROM profiles WHERE name = ?`
+	_, err := s.db.ExecContext(ctx, deleteProfileQry, profName)
+	if err != nil {
+		return fmt.Errorf("store: delete profile: %w", err)
+	}
+	log.DebugSQL("Successfully deleted %s for profile %s", deleteProfileQry, profName)
+	return nil
+}

@@ -12,6 +12,7 @@ const (
 	screenNewProfile
 	screenDeleteProfileConfirm
 	screenChooseQuizMode
+	screenProfileSettings
 	screenGoodbye
 )
 
@@ -37,6 +38,8 @@ type Model struct {
 	profileRenameIndex int // index of item being renamed, or -1
 
 	quizModeMenu choiceList
+	profileSettings profileSettingsConfig
+
 
 	// profile states here
 	existingProfiles []store.Profile // all active profiles

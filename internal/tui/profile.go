@@ -161,6 +161,11 @@ func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.newProfileErr = ""
 			m.screen = screenNewProfile
 			return m, textinput.Blink
+		default:
+			m.selectedProfile = m.existingProfiles[m.profileMenu.cursor]
+			m.buildQuizModeMenu()
+			// m.newProfileErr = ""
+			m.screen = screenChooseQuizMode
 		}
 	case "q", "esc":
 		return m, tea.Quit

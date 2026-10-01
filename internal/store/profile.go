@@ -100,3 +100,15 @@ func (s *Store) RenameProfile(ctx context.Context, oldProfName string, newProfNa
 	
 	return s.GetProfile(ctx, newProfName)
 }
+
+// UpdateProfile updates the settings for the profile with the given name.
+func (s *Store) UpdateProfile(ctx context.Context, profile Profile) error {
+	updateProfileQry := `UPDATE profiles SET enable_speech = ?, default_num_questions = ?, 
+						default_num_answers = ?, lang1 = ?, lang2 = ? WHERE name = ?`
+	_, err := s.db.ExecContext(ctx, updateProfileQry, profile.EnableSpeech, profile.DefaultNumQuestions, profile.DefaultNumAnswers, profile.Lang1, profile.Lang2, profile.Name)
+	if err != nil {
+		return fmt.Errorf("store: update profile: %w", err)
+	}
+	log.DebugSQL("Successfully updated %s for profile %s", updateProfileQry, profile.Name)
+	return nil	
+}

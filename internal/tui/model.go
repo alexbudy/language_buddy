@@ -39,7 +39,7 @@ type Model struct {
 
 	quizModeMenu choiceList
 	profileSettings profileSettingsConfig
-
+	updateProfileSuccess string
 
 	// profile states here
 	existingProfiles []store.Profile // all active profiles

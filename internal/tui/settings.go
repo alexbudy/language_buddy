@@ -1,9 +1,12 @@
 package tui
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/alexbudy/go_spanish_rewrite/internal/store"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -61,6 +64,10 @@ func newProfileSettings(title string, profile string, allowTTS bool, defaultNumQ
 
 func (psc *profileSettingsConfig) toggleEnableTTS() {
 	psc.enableTTS = !psc.enableTTS
+}
+
+func (psc *profileSettingsConfig) toggleSaveCancelSelection() {
+	psc.saveCancelSelection = (psc.saveCancelSelection + 1) % 2
 }
 
 func (psc *profileSettingsConfig) cycleLanguage(lang1OrLang2 string) {
@@ -256,7 +263,7 @@ func (psc profileSettingsConfig) view() string {
 
 func (m *Model) viewProfileSettings() string {
 	return m.profileSettings.view() + 
-		helpStyle.Render("\n↑/↓/⇆ to navigate • enter to select • esc to go back")
+		helpStyle.Render("\n↑/↓/⇆ to navigate • enter to select • tab to cycle • esc to go back")
 }
 
 func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -271,57 +278,67 @@ func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.profileSettings.up()
 	case "down", "j":
 		m.profileSettings.down()
-	// case "left", "h":
-	// 	if m.profileSettings.selectedSetting == settingNumQuestions {
-	// 		m.profileSettings.decreaseQuestions()
-	// 	} else if m.profileSettings.selectedSetting == settingTTS {
-	// 		m.profileSettings.toggleEnableTTS()
-	// 	} else if m.profileSettings.selectedSetting == settingLanguage {
-	// 		m.profileSettings.cycleDefaultLanguage()
-	// 	} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
-	// 		m.profileSettings.decreaseNumAnswers()
-	// 	} else if m.profileSettings.selectedSetting == settingSaveCancel {
-	// 		m.profileSettings.saveCancelSelection = saveSelected
-	// 	}
-	// case "right", "l":
-	// 	if m.profileSettings.selectedSetting == settingNumQuestions {
-	// 		m.profileSettings.increaseQuestions()
-	// 	} else if m.profileSettings.selectedSetting == settingTTS {
-	// 		m.profileSettings.toggleEnableTTS()
-	// 	} else if m.profileSettings.selectedSetting == settingLanguage {
-	// 		m.profileSettings.cycleDefaultLanguage()
-	// 	} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
-	// 		m.profileSettings.increaseNumAnswers()
-	// 	} else if m.profileSettings.selectedSetting == settingSaveCancel {
-	// 		m.profileSettings.saveCancelSelection = cancelSelected
-	// 	}
-	// case "tab":
-	// 	if m.profileSettings.selectedSetting == settingTTS {
-	// 		m.profileSettings.toggleEnableTTS()
-	// 	} else if m.profileSettings.selectedSetting == settingLanguage {
-	// 		m.profileSettings.cycleDefaultLanguage()
-	// 	}
-	// case "enter":
-	// 	if m.profileSettings.selectedSetting == settingSaveCancel {
-	// 		if m.profileSettings.saveCancelSelection == saveSelected {
-	// 			err := m.store.UpdateProfile(m.ctx,
-	// 				store.Profile{
-	// 					Name: m.profile, EnableSpeech: m.profileSettings.enableTTS,
-	// 					DefaultNumQuestions: m.profileSettings.defaultNumQuestions,
-	// 					DefaultNumAnswers:   m.profileSettings.defaultNumAnswerOptions,
-	// 					DefaultLanguage:     m.profileSettings.defaultLanguage,
-	// 				})
-	// 			if err != nil {
-	// 				fmt.Errorf("store: check some_new_column: %w", err)
-	// 				return m, nil
-	// 			}
-
-	// 			m.updateProfileSuccess = "Profile settings updated successfully"
-	// 			m.screen = screenDirectionSelect
-	// 		} else {
-	// 			m.screen = screenDirectionSelect
-	// 		}
-	// 	}
+	case "left", "h":
+		if m.profileSettings.selectedSetting == settingNumQuestions {
+			m.profileSettings.decreaseQuestions()
+		} else if m.profileSettings.selectedSetting == settingTTS {
+			m.profileSettings.toggleEnableTTS()
+		} else if m.profileSettings.selectedSetting == settingLanguage1 {
+			m.profileSettings.cycleLanguage("lang1")
+		} else if m.profileSettings.selectedSetting == settingLanguage2 {
+			m.profileSettings.cycleLanguage("lang2")
+		} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
+			m.profileSettings.decreaseNumAnswers()
+		} else if m.profileSettings.selectedSetting == settingSaveCancel {
+			m.profileSettings.saveCancelSelection = saveSelected
+		}
+	case "right", "l":
+		if m.profileSettings.selectedSetting == settingNumQuestions {
+			m.profileSettings.increaseQuestions()
+		} else if m.profileSettings.selectedSetting == settingTTS {
+			m.profileSettings.toggleEnableTTS()
+		} else if m.profileSettings.selectedSetting == settingLanguage1 {
+			m.profileSettings.cycleLanguage("lang1")
+		} else if m.profileSettings.selectedSetting == settingLanguage2 {
+			m.profileSettings.cycleLanguage("lang2")
+		} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
+			m.profileSettings.increaseNumAnswers()
+		} else if m.profileSettings.selectedSetting == settingSaveCancel {
+			m.profileSettings.saveCancelSelection = cancelSelected
+		}
+	case "tab":
+		if m.profileSettings.selectedSetting == settingTTS {
+			m.profileSettings.toggleEnableTTS()
+		} else if m.profileSettings.selectedSetting == settingLanguage1 {
+			m.profileSettings.cycleLanguage("lang1")
+		} else if m.profileSettings.selectedSetting == settingLanguage2 {
+			m.profileSettings.cycleLanguage("lang2")
+		} else if m.profileSettings.selectedSetting == settingSaveCancel {
+			m.profileSettings.toggleSaveCancelSelection()
+		}
+	case "enter":
+		if m.profileSettings.selectedSetting == settingSaveCancel {
+			if m.profileSettings.saveCancelSelection == saveSelected {
+				updatedProfile := store.Profile{
+						Name: m.selectedProfile.Name, EnableSpeech: m.profileSettings.enableTTS,
+						DefaultNumQuestions: m.profileSettings.defaultNumQuestions,
+						DefaultNumAnswers:   m.profileSettings.defaultNumAnswers,
+						Lang1:     m.profileSettings.language1,
+						Lang2:     m.profileSettings.language2,
+					}
+				err := m.store.UpdateProfile(context.Background(), updatedProfile)
+				if err != nil {
+					fmt.Errorf("store: check some_new_column: %w", err)
+					return m, nil
+				}
+				// update the proifle on the model
+				m.selectedProfile = updatedProfile
+				m.updateProfileSuccess = "Profile settings updated successfully"
+				m.screen = screenChooseQuizMode
+			} else {
+				m.screen = screenChooseQuizMode
+			}
+		}
 	case "esc":
 		// m.updateProfileSuccess = ""
 		m.buildQuizModeMenu()

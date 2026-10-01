@@ -44,6 +44,10 @@ func (m *Model) viewChooseQuizMode() string {
 	var b strings.Builder
 	b.WriteString(m.quizModeMenu.view())
 
+	if m.updateProfileSuccess != "" {
+		b.WriteString(successStyle.Render(m.updateProfileSuccess))
+	}
+
 	b.WriteString(helpStyle.Render("\n↑/↓ to navigate • enter to select • esc to go back"))
 
 	return b.String()

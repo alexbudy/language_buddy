@@ -263,7 +263,7 @@ func (psc profileSettingsConfig) view() string {
 
 func (m *Model) viewProfileSettings() string {
 	return m.profileSettings.view() + 
-		helpStyle.Render("\n↑/↓/⇆ to navigate • enter to select • tab to cycle • esc to go back")
+		helpStyle.Render("\n↑/↓/⇆ to navigate • enter to select • tab to cycle • s/c to save/cancel • esc to go back")
 }
 
 func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -319,30 +319,39 @@ func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "enter":
 		if m.profileSettings.selectedSetting == settingSaveCancel {
 			if m.profileSettings.saveCancelSelection == saveSelected {
-				updatedProfile := store.Profile{
-						Name: m.selectedProfile.Name, EnableSpeech: m.profileSettings.enableTTS,
-						DefaultNumQuestions: m.profileSettings.defaultNumQuestions,
-						DefaultNumAnswers:   m.profileSettings.defaultNumAnswers,
-						Lang1:     m.profileSettings.language1,
-						Lang2:     m.profileSettings.language2,
-					}
-				err := m.store.UpdateProfile(context.Background(), updatedProfile)
-				if err != nil {
-					fmt.Errorf("store: check some_new_column: %w", err)
-					return m, nil
-				}
-				// update the proifle on the model
-				m.selectedProfile = updatedProfile
-				m.updateProfileSuccess = "Profile settings updated successfully"
-				m.screen = screenChooseQuizMode
+				saveSettings(m)
 			} else {
 				m.screen = screenChooseQuizMode
 			}
 		}
-	case "esc":
-		// m.updateProfileSuccess = ""
+	case "s":
+		saveSettings(m)
+		return m, nil
+	case "esc", "c": // 'c' for cancel
+		m.updateProfileSuccess = ""
 		m.buildQuizModeMenu()
 		m.screen = screenChooseQuizMode
 	}
 	return m, nil
+}
+
+func saveSettings(m *Model) error {
+	updatedProfile := store.Profile{
+			Name: m.selectedProfile.Name, EnableSpeech: m.profileSettings.enableTTS,
+			DefaultNumQuestions: m.profileSettings.defaultNumQuestions,
+			DefaultNumAnswers:   m.profileSettings.defaultNumAnswers,
+			Lang1:     m.profileSettings.language1,
+			Lang2:     m.profileSettings.language2,
+		}
+	err := m.store.UpdateProfile(context.Background(), updatedProfile)
+	if err != nil {
+		fmt.Errorf("store: check some_new_column: %w", err)
+		return err
+	}
+	// update the proifle on the model
+	m.selectedProfile = updatedProfile
+	m.updateProfileSuccess = "Profile settings updated successfully"
+	m.screen = screenChooseQuizMode
+
+	return nil
 }

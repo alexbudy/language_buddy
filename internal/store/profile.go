@@ -88,3 +88,15 @@ func (s *Store) DeleteProfile(ctx context.Context, profName string) error {
 	log.DebugSQL("Successfully deleted %s for profile %s", deleteProfileQry, profName)
 	return nil
 }
+
+// RenameProfile changes a profile's name and returns the renamed profile.
+func (s *Store) RenameProfile(ctx context.Context, oldProfName string, newProfName string) (Profile, error) {
+	renameProfileQry := `UPDATE profiles SET name = ? WHERE name = ?`
+	_, err := s.db.ExecContext(ctx, renameProfileQry, newProfName, oldProfName)
+	if err != nil {
+		return Profile{}, fmt.Errorf("store: rename profile: %w", err)
+	}
+	log.DebugSQL("Successfully renamed %s for profile %s to %s", renameProfileQry, oldProfName, newProfName)
+	
+	return s.GetProfile(ctx, newProfName)
+}

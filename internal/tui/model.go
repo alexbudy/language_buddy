@@ -22,15 +22,18 @@ type Model struct {
 
 	profileMenu choiceList
 
-	newProfileInput textinput.Model
+	newProfileInput textinput.Model // input for creating new profile
 	newProfileErr string
 
 	profileToDelete string
-	delProfileErr string // error for when choosing wrong entry for deletion
 	invalidDeletePhraseErr string // error for when user typed invalid deletion phrase
 	deleteProfileConfirmMenu choiceList
 	specialDeletePhraseInput   textinput.Model
+	profileActionErr string // gerneric error for profile action
 
+	profileRenameInput textinput.Model
+	profileRenaming bool // are we in renaming mode
+	profileRenameIndex int // index of item being renamed, or -1
 
 	existingProfiles []store.Profile // all active profiles
 }

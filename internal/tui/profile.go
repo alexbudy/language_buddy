@@ -14,6 +14,7 @@ const (
 	exitValue = "__exit__"
 	newProfileValue = "__new_profile__"
 	maxProfileSlots = 8 // leave one for the exit, and limit to single digit selection
+	profileSettings = "__profile_settings__"
 )
 
 

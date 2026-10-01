@@ -11,6 +11,7 @@ const (
 	screenProfileSelect screen = iota
 	screenNewProfile
 	screenDeleteProfileConfirm
+	screenChooseQuizMode
 	screenGoodbye
 )
 
@@ -35,6 +36,10 @@ type Model struct {
 	profileRenaming bool // are we in renaming mode
 	profileRenameIndex int // index of item being renamed, or -1
 
+	quizModeMenu choiceList
+
+	// profile states here
 	existingProfiles []store.Profile // all active profiles
+	selectedProfile store.Profile // Profile selected from the ProfileSelect screen
 }
 

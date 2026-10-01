@@ -68,6 +68,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateNewProfile(msg)
 		case screenDeleteProfileConfirm:
 			return m.updateDeleteProfileConfirm(msg)
+		case screenChooseQuizMode:
+			return m.updateChooseQuizMode(msg)
 		case screenGoodbye:
 			return m, tea.Quit
 	}
@@ -79,10 +81,12 @@ func (m Model) View() string {
 	switch m.screen {
 	case screenProfileSelect:
 		return m.viewProfileSelect()
-	case screenDeleteProfileConfirm:
-		return m.viewDeleteProfileConfirm()
 	case screenNewProfile:
 		return m.viewNewProfile()
+	case screenDeleteProfileConfirm:
+		return m.viewDeleteProfileConfirm()
+	case screenChooseQuizMode:
+		return m.viewChooseQuizMode()
 	case screenGoodbye:
 		return titleStyle.Render("Exiting the program, thanks for training!") + "\n"
 	}

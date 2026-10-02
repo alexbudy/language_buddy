@@ -47,5 +47,6 @@ type Model struct {
 	// profile states here
 	existingProfiles []store.Profile // all active profiles
 	selectedProfile store.Profile // Profile selected from the ProfileSelect screen
+	allWords []store.Word // all words for the selected profile
 }
 

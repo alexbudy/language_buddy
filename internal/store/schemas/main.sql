@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS words (
   spanish TEXT NOT NULL,
   english TEXT NOT NULL,
   ukrainian TEXT NOT NULL,
-  gender_uk TEXT,
+  gender_uk TEXT NOT NULL DEFAULT "",
   UNIQUE(english)
 );
 

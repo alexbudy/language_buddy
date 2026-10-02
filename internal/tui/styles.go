@@ -22,12 +22,12 @@ var (
 	deleteConfirmSpecialWordStyle = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("196"))
 
 	// // Page counter styles
-	// pageCounterStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("247")).MarginTop(1)
+	pageCounterStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("247")).MarginTop(1)
 
 	// // Manage Words styles
-	// knowWordVeryWellStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("41"))
-	// knowWordWellStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
-	// knowWordNeutralStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("247"))
-	// knowWordPoorlyStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-	// knowWordVeryPoorlyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("124"))
+	knowWordVeryWellStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("41"))
+	knowWordWellStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
+	knowWordNeutralStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("247"))
+	knowWordPoorlyStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
+	knowWordVeryPoorlyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("124"))
 )

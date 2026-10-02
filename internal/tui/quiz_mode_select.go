@@ -37,6 +37,7 @@ func (m *Model) buildQuizModeMenu() {
 		newChoiceItem(fmt.Sprintf("Provide %s words, answer with %s words", lang2, lang1), "lang2_to_lang1"),
 		newSeparatorItem(),
 		newChoiceItem("Profile settings", profileSettings),
+		newChoiceItem("Manage words", manageWords),
 	})
 }
 
@@ -73,7 +74,7 @@ func (m *Model) updateChooseQuizMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "down", "j":
 		m.quizModeMenu.down()
 	case "enter":
-		// m.updateProfileSuccess = "" // reset success message if it already exists
+		m.updateProfileSuccess = "" // reset success message if it already exists
 
 		selectableNumber := 0
 
@@ -94,8 +95,12 @@ func (m *Model) updateChooseQuizMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.screen = screenProfileSettings
 			return m, nil
 		}
-
-		// quizModeLanguageDirection := m.quizModeMenu.selected().value
+		
+		if m.quizModeMenu.selected().value == manageWords {
+			m.buildManageWordsMenu()
+			m.screen = screenManageWords
+			return m, nil
+		}
 
 		m.buildQuizModeMenu()
 		m.screen = screenProfileSelect // TODO

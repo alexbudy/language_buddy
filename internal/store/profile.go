@@ -47,20 +47,64 @@ func (s *Store) GetProfiles(ctx context.Context) ([]Profile, error) {
 	return profiles, nil
 }
 
-// StoreProfile creates a new profile with the given name.
-func (s *Store) StoreProfile(ctx context.Context, profName string) (Profile, error) {
+// InitProfile creates a new profile with the given name, return that profile struct
+func (s *Store) InitProfile(ctx context.Context, profName string) (Profile, error) {
+	tx, err := s.db.Begin() // begin transaction for initializing profile
+	if err != nil {
+		return Profile{}, fmt.Errorf("store: begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
 	storeProfileQry := `INSERT INTO profiles (name) VALUES (?)`
 	var profile Profile
-	_, err := s.db.ExecContext(ctx, storeProfileQry, profName)
+	_, err = s.db.ExecContext(ctx, storeProfileQry, profName)
 	if err != nil {
 		return Profile{}, err
 	}
-	log.DebugSQL("Successfully inserted %s for profile %s", storeProfileQry, profName)
+	log.DebugSQL("Inserted %s for profile %s, transaction ongoing", storeProfileQry, profName)
 
 	profile, err = s.GetProfile(ctx, profName)
 	if err != nil {
 		return Profile{}, err
 	}
+
+	rows, err := tx.QueryContext(ctx, "SELECT id FROM words")
+	if err != nil {
+		return Profile{}, fmt.Errorf("store: select words: %w", err)
+	}
+
+	var nounIDs []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return Profile{}, fmt.Errorf("store: scan word id: %w", err)
+		}
+		nounIDs = append(nounIDs, id)
+	}
+	rows.Close()
+
+	insertQry := "INSERT INTO rankings (profile_id, word_id) VALUES (?, ?)"
+	stmt, err := tx.PrepareContext(ctx, insertQry)
+
+	if err != nil {
+		return Profile{}, fmt.Errorf("store: prepare ranking insert: %w", err)
+	}
+
+	defer stmt.Close()
+
+	for _, nounID := range nounIDs {
+		if _, err := stmt.ExecContext(ctx, profile.ID, nounID); err != nil {
+			return Profile{}, fmt.Errorf("store: insert profile_nouns: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return Profile{}, fmt.Errorf("store: commit transaction: %w", err)
+	}
+	log.DebugSQL("Successfully initialized profile %s", profName)
+
 	return profile, nil
 }
 

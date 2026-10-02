@@ -72,6 +72,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateChooseQuizMode(msg)
 		case screenProfileSettings:
 			return m.updateProfileSettings(msg)
+		case screenManageWords:
+			return m.updateManageWords(msg)
 		case screenGoodbye:
 			return m, tea.Quit
 	}
@@ -91,6 +93,8 @@ func (m Model) View() string {
 		return m.viewChooseQuizMode()
 	case screenProfileSettings:
 		return m.viewProfileSettings()
+	case screenManageWords:
+		return m.viewManageWords()
 	case screenGoodbye:
 		return titleStyle.Render("Exiting the program, thanks for training!") + "\n"
 	}

@@ -10,11 +10,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// some global constants
 const (
 	exitValue = "__exit__"
 	newProfileValue = "__new_profile__"
 	maxProfileSlots = 8 // leave one for the exit, and limit to single digit selection
 	profileSettings = "__profile_settings__"
+	manageWords = "__manage_words__"
 )
 
 
@@ -147,9 +149,6 @@ func (m *Model) updateProfileSelect(msg tea.Msg) (tea.Model, tea.Cmd) {
         m.profileRenameInput.SetValue("")
         m.profileRenameInput.Focus()
 
-		// m.profileMenu.renameIndex = m.profileRenameIndex
-		// m.profileMenu.renameInput = &m.profileRenameInput
-
 		return m, textinput.Blink
 	case "enter":
 		switch selected := m.profileMenu.selected(); selected.value {
@@ -235,7 +234,7 @@ func (m *Model) updateNewProfile(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
-				profile, err := m.store.StoreProfile(context.Background(), name)
+				profile, err := m.store.InitProfile(context.Background(), name)
 
 				if err != nil {
 					m.newProfileErr = "Something went wrong creating the profile: " + err.Error()

@@ -17,13 +17,14 @@ type Profile struct {
     DefaultNumAnswers   int
     Lang1              string
     Lang2              string
+	QuizMode		   string
 }
 
 // GetProfiles returns all profiles.
 func (s *Store) GetProfiles(ctx context.Context) ([]Profile, error) {
 	var profiles []Profile
 	getProfilesQry := `SELECT id, name, enable_speech, default_num_questions, 
-						default_num_answers, lang1, lang2 FROM profiles 
+						default_num_answers, lang1, lang2, quiz_mode FROM profiles 
 						WHERE deleted_at IS NULL ORDER BY created_at ASC`
 	rows, err := s.db.QueryContext(ctx, getProfilesQry)
 	if err != nil {
@@ -34,7 +35,7 @@ func (s *Store) GetProfiles(ctx context.Context) ([]Profile, error) {
 
 	for rows.Next() {
 		var p Profile
-		if err := rows.Scan(&p.ID, &p.Name, &p.EnableSpeech, &p.DefaultNumQuestions, &p.DefaultNumAnswers, &p.Lang1, &p.Lang2); err != nil {
+		if err := rows.Scan(&p.ID, &p.Name, &p.EnableSpeech, &p.DefaultNumQuestions, &p.DefaultNumAnswers, &p.Lang1, &p.Lang2, &p.QuizMode); err != nil {
 			return nil, fmt.Errorf("store: get profiles: %w", err)
 		}
 		profiles = append(profiles, p)
@@ -67,10 +68,11 @@ func (s *Store) StoreProfile(ctx context.Context, profName string) (Profile, err
 func (s *Store) GetProfile(ctx context.Context, profName string) (Profile, error) {
 	var profile Profile
 	getProfileQry := `SELECT id, name, enable_speech, default_num_questions, 
-						default_num_answers, lang1, lang2 FROM profiles 
+						default_num_answers, lang1, lang2, quiz_mode FROM profiles 
 						WHERE deleted_at IS NULL AND name = ?`
 	row := s.db.QueryRowContext(ctx, getProfileQry, profName)
-	if err := row.Scan(&profile.ID, &profile.Name, &profile.EnableSpeech, &profile.DefaultNumQuestions, &profile.DefaultNumAnswers, &profile.Lang1, &profile.Lang2); err != nil {
+	if err := row.Scan(&profile.ID, &profile.Name, &profile.EnableSpeech, &profile.DefaultNumQuestions,
+						&profile.DefaultNumAnswers, &profile.Lang1, &profile.Lang2, &profile.QuizMode); err != nil {
 		return Profile{}, fmt.Errorf("store: get profile: %w", err)
 	}
 	log.DebugSQL("Successfully retrieved %s for profile %s", getProfileQry, profName)
@@ -104,8 +106,9 @@ func (s *Store) RenameProfile(ctx context.Context, oldProfName string, newProfNa
 // UpdateProfile updates the settings for the profile with the given name.
 func (s *Store) UpdateProfile(ctx context.Context, profile Profile) error {
 	updateProfileQry := `UPDATE profiles SET enable_speech = ?, default_num_questions = ?, 
-						default_num_answers = ?, lang1 = ?, lang2 = ? WHERE name = ?`
-	_, err := s.db.ExecContext(ctx, updateProfileQry, profile.EnableSpeech, profile.DefaultNumQuestions, profile.DefaultNumAnswers, profile.Lang1, profile.Lang2, profile.Name)
+						default_num_answers = ?, lang1 = ?, lang2 = ?, quiz_mode = ? WHERE name = ?`
+	_, err := s.db.ExecContext(ctx, updateProfileQry, profile.EnableSpeech, profile.DefaultNumQuestions,
+						profile.DefaultNumAnswers, profile.Lang1, profile.Lang2, profile.QuizMode, profile.Name)
 	if err != nil {
 		return fmt.Errorf("store: update profile: %w", err)
 	}

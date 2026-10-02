@@ -24,10 +24,12 @@ const (
 	settingTTS profileSetting = iota
 	settingLanguage1
 	settingLanguage2
+	settingQuizMode
 	settingNumQuestions
 	settingNumAnswerOptions
 	settingSaveCancel
 )
+const totalSettings profileSetting = 7
 
 type profileSettingsConfig struct {
 	title string
@@ -35,12 +37,28 @@ type profileSettingsConfig struct {
 	enableTTS bool
 	language1 string
 	language2 string
+	quizMode quizMode
 	defaultNumQuestions int
 	defaultNumAnswers int
 	
 	selectedSetting profileSetting
 
 	saveCancelSelection saveCancelSelection
+}
+
+type quizMode string
+
+const (
+	// QuizMode keeps track of the quiz mode setting
+	quizModeAny quizMode = "any"
+	quizModeWellKnown quizMode = "well_known"
+	quizModeLeastKnown quizMode = "least_known"
+)
+var orderedQuizMode = []quizMode{quizModeAny, quizModeWellKnown, quizModeLeastKnown}
+var quizModeToString = map[quizMode]string{
+	quizModeAny: "Any Words",
+	quizModeWellKnown: "Well Known Words",
+	quizModeLeastKnown: "Least Known Words",
 }
 
 var languages = []string{"en", "es", "uk"}
@@ -51,7 +69,7 @@ var langCodeToName = map[string]string{
 }
 
 func newProfileSettings(title string, profile string, allowTTS bool, defaultNumQuestions int, 
-						defaultNumAnswerOptions int, lang1 string, lang2 string) profileSettingsConfig {
+						defaultNumAnswerOptions int, lang1 string, lang2 string, quizMode quizMode) profileSettingsConfig {
 	return profileSettingsConfig{
 		title: title, profile: profile, enableTTS: allowTTS,
 		defaultNumQuestions:     defaultNumQuestions,
@@ -59,6 +77,7 @@ func newProfileSettings(title string, profile string, allowTTS bool, defaultNumQ
 		selectedSetting:         settingTTS,
 		language1:         lang1,
 		language2:         lang2,
+		quizMode: quizMode,
 	}
 }
 
@@ -104,51 +123,31 @@ func (psc *profileSettingsConfig) cycleLanguage(lang1OrLang2 string) {
 	}
 }
 
-
-func (psc *profileSettingsConfig) up() {
-	switch psc.selectedSetting {
-	case settingTTS:
-		psc.selectedSetting = settingSaveCancel
+func (psc *profileSettingsConfig) cycleQuizMode(direction string) {
+	curIdx := 0
 	
-	case settingLanguage1:
-		psc.selectedSetting = settingTTS
-
-	case settingLanguage2:
-		psc.selectedSetting = settingLanguage1
-
-	case settingNumQuestions:
-		psc.selectedSetting = settingLanguage2
-
-	case settingNumAnswerOptions:
-		psc.selectedSetting = settingNumQuestions
-
-	case settingSaveCancel:
-		psc.selectedSetting = settingNumAnswerOptions
+	for i, qm := range orderedQuizMode {
+		if qm == psc.quizMode {
+			curIdx = i 
+			break // found the 
+		}
+	} // found index where we currently are
+	if direction == "left" {
+		curIdx = (curIdx - 1 + len(orderedQuizMode)) % len(orderedQuizMode)
+	} else {
+		curIdx = (curIdx + 1) % len(orderedQuizMode)
 	}
+	psc.quizMode = orderedQuizMode[curIdx]
 }
+
 
 func (psc *profileSettingsConfig) down() {
-	switch psc.selectedSetting {
-	case settingTTS:
-		psc.selectedSetting = settingLanguage1
-
-	case settingLanguage1:
-		psc.selectedSetting = settingLanguage2
-
-	case settingLanguage2:
-		psc.selectedSetting = settingNumQuestions
-
-	case settingNumQuestions:
-		psc.selectedSetting = settingNumAnswerOptions
-
-	case settingNumAnswerOptions:
-		psc.selectedSetting = settingSaveCancel
-
-	case settingSaveCancel:
-		psc.selectedSetting = settingTTS
-	}
+	psc.selectedSetting = (psc.selectedSetting + 1) % totalSettings // 7 settings
 }
 
+func (psc *profileSettingsConfig) up() {
+	psc.selectedSetting = (psc.selectedSetting - 1 + totalSettings) % totalSettings
+}
 
 func (psc *profileSettingsConfig) increaseQuestions() {
 	if psc.defaultNumQuestions < 20 {
@@ -183,6 +182,7 @@ func (m *Model) buildSettingsMenu() {
 		m.selectedProfile.DefaultNumAnswers,
 		m.selectedProfile.Lang1,
 		m.selectedProfile.Lang2,
+		quizMode(m.selectedProfile.QuizMode),
 	)
 }
 
@@ -224,6 +224,16 @@ func (psc profileSettingsConfig) view() string {
 		b.WriteString("   " + label)
 	}
 	b.WriteString(settingSelectionStyle.Render(langCodeToName[psc.language2]))
+	b.WriteString("\n")
+
+	label = "Quiz Mode: "
+	if psc.selectedSetting == settingQuizMode {
+		b.WriteString(selectedStyle.Render(" > " + label))
+	} else {
+		b.WriteString("   " + label)
+	}
+
+	b.WriteString(settingSelectionStyle.Render(quizModeToString[psc.quizMode]))
 	b.WriteString("\n")
 
 	label = "Number of Questions per Quiz: "
@@ -287,6 +297,8 @@ func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.profileSettings.cycleLanguage("lang1")
 		} else if m.profileSettings.selectedSetting == settingLanguage2 {
 			m.profileSettings.cycleLanguage("lang2")
+		} else if m.profileSettings.selectedSetting == settingQuizMode {
+			m.profileSettings.cycleQuizMode("left")
 		} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
 			m.profileSettings.decreaseNumAnswers()
 		} else if m.profileSettings.selectedSetting == settingSaveCancel {
@@ -301,6 +313,8 @@ func (m *Model) updateProfileSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.profileSettings.cycleLanguage("lang1")
 		} else if m.profileSettings.selectedSetting == settingLanguage2 {
 			m.profileSettings.cycleLanguage("lang2")
+		} else if m.profileSettings.selectedSetting == settingQuizMode {
+			m.profileSettings.cycleQuizMode("right")
 		} else if m.profileSettings.selectedSetting == settingNumAnswerOptions {
 			m.profileSettings.increaseNumAnswers()
 		} else if m.profileSettings.selectedSetting == settingSaveCancel {
@@ -342,6 +356,7 @@ func saveSettings(m *Model) error {
 			DefaultNumAnswers:   m.profileSettings.defaultNumAnswers,
 			Lang1:     m.profileSettings.language1,
 			Lang2:     m.profileSettings.language2,
+			QuizMode:  string(m.profileSettings.quizMode),
 		}
 	err := m.store.UpdateProfile(context.Background(), updatedProfile)
 	if err != nil {

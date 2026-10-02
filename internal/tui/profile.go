@@ -46,7 +46,7 @@ func (m *Model) viewProfileSelect() string {
 	var b strings.Builder
 	b.WriteString(titleStyle.Render("Welcome to Spanish Buddy!"))
 	b.WriteString("\n")
-	b.WriteString(subtleStyle.Render("Practice your Spanish, English, and Ukrainian translations."))
+	b.WriteString(subtleStyle.Render("  ↳ Practice your Spanish, English, and Ukrainian translations."))
 	b.WriteString("\n\n")
 
 	helpTxt := "↑/↓ to navigate • enter to select • r to rename a profile • [DEL]/'d' to delete a profile • q to quit"

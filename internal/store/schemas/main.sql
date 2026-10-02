@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   default_num_answers INT NOT NULL DEFAULT 4,
   lang1 TEXT NOT NULL DEFAULT 'en',
   lang2 TEXT NOT NULL DEFAULT 'es',
+  quiz_mode NOT NULL DEFAULT 'any',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP DEFAULT NULL,
   UNIQUE(name)

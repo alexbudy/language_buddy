@@ -33,10 +33,10 @@ func newManageWordsList(title string, items []store.Word, lang1 string, lang2 st
 func (mwl manageWordsList) view() string {
 	var b strings.Builder
 	if mwl.title != "" {
-		b.WriteString(promptStyle.Render(mwl.title) + "\n\n")
+		b.WriteString(promptStyle.Render(mwl.title));b.WriteString("\n\n")
 	}
 
-	for i := mwl.pageStart; i <= mwl.pageEnd && i < len(mwl.items); i++ {
+	for i := mwl.pageStart; i < mwl.pageEnd && i < len(mwl.items); i++ {
 		item := mwl.items[i]
 
 		if i == mwl.cursor {
@@ -89,17 +89,97 @@ func (m *Model) buildManageWordsMenu() {
 
 // Manage words screen - show all words, allow for reset, removal (TODO)
 func (m Model) viewManageWords() string {
-	return m.manageWordsMenu.view() + helpStyle.Render("\n↑/↓ to navigate • enter to select • esc to go back • [PGUP/PGDN/HOME/END] to page by "+strconv.Itoa(entriesPerPage)+" words • [TAB] to swap direction • p to pronounce")
+	return m.manageWordsMenu.view() + helpStyle.Render("\n↑/↓ to navigate • enter to select • esc to go back • [PGUP/PGDN/HOME/END] to page by "+strconv.Itoa(entriesPerPage)+" words\n[TAB] to swap direction • p to pronounce")
+}
+
+func (mwl *manageWordsList) up() {
+	if (mwl.cursor == 0) {
+		return
+	}
+	mwl.cursor--
+	if (mwl.cursor < mwl.pageStart) {
+		mwl.pageStart--
+		mwl.pageEnd--
+	}
+}
+
+func (mwl *manageWordsList) down() {
+	if mwl.cursor == len(mwl.items)-1 {
+		return // bottom of list - do nothing
+	}
+	mwl.cursor++
+
+	if mwl.cursor >= mwl.pageEnd {
+		mwl.pageStart++
+		mwl.pageEnd++
+	}
+}
+
+// PgUp pressed
+func (mwl *manageWordsList) prevPage() {
+	if mwl.cursor-entriesPerPage < 0 {
+		// top of list - don't move cursor
+		mwl.pageStart = 0
+		mwl.pageEnd = entriesPerPage
+	} else {
+		mwl.pageStart = max(0, mwl.pageStart-entriesPerPage)
+		mwl.cursor -= entriesPerPage
+		mwl.pageEnd -= entriesPerPage
+	}
+}
+
+// PgdDown pressed
+func (mwl *manageWordsList) nextPage() {
+	if mwl.cursor+entriesPerPage > len(mwl.items) {
+		// bottom of list - no scroll
+		return
+	} else {
+		mwl.pageStart += entriesPerPage
+		mwl.cursor += entriesPerPage
+		mwl.pageEnd = mwl.pageStart + entriesPerPage
+	}
+}
+
+func (mwl *manageWordsList) first() {
+	mwl.pageStart = 0
+	mwl.cursor = 0
+	mwl.pageEnd = entriesPerPage
+}
+
+func (mwl *manageWordsList) last() {
+	mwl.pageStart = len(mwl.items) - entriesPerPage
+	mwl.cursor = len(mwl.items) - 1
+	mwl.pageEnd = len(mwl.items)
+}
+
+func (mwl *manageWordsList) swapDirection() {
+	mwl.lang1, mwl.lang2 = mwl.lang2, mwl.lang1
 }
 
 func (m Model) updateManageWords(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "up", "k":
+			m.manageWordsMenu.up()
+		case "down", "j":
+			m.manageWordsMenu.down()
+		case "pgup":
+			m.manageWordsMenu.prevPage()
+		case "pgdown":
+			m.manageWordsMenu.nextPage()
+		case "home":
+			m.manageWordsMenu.first()
+		case "end":
+			m.manageWordsMenu.last()
 		case "esc":
 			m.screen = 	screenChooseQuizMode
-
-			return m, nil
+		case "tab":
+			m.manageWordsMenu.swapDirection()
+		case "p":
+			word := m.manageWordsMenu.items[m.manageWordsMenu.cursor]
+			// pronounce both words
+			pronounceWordPair(word, m.manageWordsMenu.lang1, m.manageWordsMenu.lang2)
 		}
 	}
 	return m, nil

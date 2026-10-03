@@ -172,6 +172,9 @@ func (m Model) updateManageWords(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.manageWordsMenu.first()
 		case "end":
 			m.manageWordsMenu.last()
+		case "enter":
+			m.buildWordDetailsMenu() // build the detail menu
+			m.screen = screenWordDetails
 		case "esc":
 			m.screen = 	screenChooseQuizMode
 		case "tab":

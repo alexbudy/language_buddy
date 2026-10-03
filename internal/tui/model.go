@@ -14,6 +14,7 @@ const (
 	screenChooseQuizMode
 	screenProfileSettings
 	screenManageWords
+	screenWordDetails
 	screenGoodbye
 )
 
@@ -43,6 +44,7 @@ type Model struct {
 	updateProfileSuccess string
 
 	manageWordsMenu manageWordsList
+	wordDetailsMenu wordDetails
 
 	// profile states here
 	existingProfiles []store.Profile // all active profiles

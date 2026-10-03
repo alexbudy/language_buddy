@@ -15,14 +15,14 @@ var spanishVoices = []string{
 }
 
 var englishVoices = []string{
-	"Microsoft David Desktop",
 	"Microsoft Zira Desktop",
+	"Microsoft David Desktop",
 }
 
-// these voices do not come through Windows install - see README
+// these voices do not come through standard Windows install - see README
 var ukrainianVoices = []string{
-	"Anatol",
 	"Natalia",
+	"Anatol",
 }
 
 var langCodeToVoices = map[string][]string{

@@ -107,3 +107,11 @@ func (c choiceList) view() string {
 
 	return b.String()
 }
+
+func labeledItems(labels ...string) []choiceItem {
+	items := make([]choiceItem, len(labels))
+	for i, l := range labels {
+		items[i] = newChoiceItem(l, l)
+	}
+	return items
+}

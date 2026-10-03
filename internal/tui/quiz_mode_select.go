@@ -2,7 +2,6 @@ package tui
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -28,15 +27,10 @@ func languageName(langCode string) string {
 // components for choosing the quiz mode
 
 func (m *Model) buildQuizModeMenu() {
-	lang1 := languageName(m.selectedProfile.Lang1)
-	lang2 := languageName(m.selectedProfile.Lang2)
-
-
 	// TODO fill in with correct directions
 	m.quizModeMenu = newChoiceList("Select a training direction", 
 	[]choiceItem {
-		newChoiceItem(fmt.Sprintf("Provide %s words, answer with %s words", lang1, lang2), "lang1_to_lang2"),
-		newChoiceItem(fmt.Sprintf("Provide %s words, answer with %s words", lang2, lang1), "lang2_to_lang1"),
+		newChoiceItem("Start quiz", "Start quiz"),
 		newSeparatorItem(),
 		newChoiceItem("Profile settings", profileSettings),
 		newChoiceItem("Manage words", manageWords),
@@ -111,8 +105,8 @@ func (m *Model) updateChooseQuizMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		m.buildQuizModeMenu()
-		m.screen = screenProfileSelect // TODO
+		m.startQuiz()
+		m.screen = screenQuestion 
 		return m, nil // TODO change to textinput.Blink
 	case "esc":
 		m.buildProfileMenu() // rebuild profile menu in case using new profile

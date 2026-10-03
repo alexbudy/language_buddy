@@ -31,6 +31,23 @@ var langCodeToVoices = map[string][]string{
 	"uk": ukrainianVoices,
 }
 
+func pronounceWord(word store.Word, lang string) {
+	word1 := ""
+
+	switch lang { // TODO potentially generalize
+	case "en":
+		word1 = word.English
+	case "es":
+		word1 = word.Spanish
+	case "uk":
+		word1 = word.Ukrainian
+	}
+
+	go func() {
+		pronounceText(word1, langCodeToVoices[lang])
+	}()
+}
+
 // Given word, pronounce it in lang1 then lang 2
 func pronounceWordPair(word store.Word, lang1 string, lang2 string) {
 	word1 := ""

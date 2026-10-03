@@ -15,6 +15,10 @@ const (
 	screenProfileSettings
 	screenManageWords
 	screenWordDetails
+
+	screenQuestion
+	screenResults // results screen after completing a quiz
+
 	screenGoodbye
 )
 
@@ -40,6 +44,10 @@ type Model struct {
 	profileRenameIndex int // index of item being renamed, or -1
 
 	quizModeMenu choiceList
+	quiz quizState
+	answerMenu choiceList
+
+
 	profileSettings profileSettingsConfig
 	updateProfileSuccess string
 

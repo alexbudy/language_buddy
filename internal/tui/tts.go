@@ -70,14 +70,17 @@ func pronounceWordPair(word store.Word, lang1 string, lang2 string) {
 		word2 = word.Ukrainian
 	}	
 
+	pronounceWordPairStringsOnly(word1, word2, lang1, lang2)
+}
+
+// this function operates on strings, not the word struct
+func pronounceWordPairStringsOnly(word1 string, word2 string, lang1 string, lang2 string) {
 	go func() {
 		pronounceText(word1, langCodeToVoices[lang1])
 		go func() {
 			pronounceText(word2, langCodeToVoices[lang2])
 		}()
 	}()
-	
-
 }
 
 // pronounce the text in the preferred voices, in order of preference. If none of the preferred voices are available, it will use the default voice.

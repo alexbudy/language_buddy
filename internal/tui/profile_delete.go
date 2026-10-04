@@ -40,7 +40,7 @@ func (m Model) viewDeleteProfileConfirm() string {
 	b.WriteString(helpStyle.Render("\n\nenter to confirm • esc to go back"))
 	return b.String()
 }
-// TODO
+
 func (m *Model) updateDeleteProfileConfirm(msg tea.Msg) (tea.Model, tea.Cmd) {
 	deletionPhrase := "delete " + m.profileToDelete
 

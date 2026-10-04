@@ -81,8 +81,8 @@ func (c choiceList) view() string {
 
 	if c.title != "" {
 		b.WriteString(titleStyle.Render(c.title))
-		b.WriteString("\n\n")
 	}
+	b.WriteString("\n")
 
 	number := 1
 	for i, item := range c.items {

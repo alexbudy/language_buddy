@@ -143,8 +143,9 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiz.questionSuccess = ""
 			m.quiz.questionErr = ""
 			m.quiz.readyForNextQuestion = false
-			
+
 			if m.quiz.questionIndex > m.selectedProfile.DefaultNumQuestions {
+				m.buildResultsMenu()
 				m.screen = screenResults // end quiz, show results
 			} else {
 				m.loadNextQuestion()

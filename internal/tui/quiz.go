@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 
 	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	"github.com/alexbudy/go_spanish_rewrite/internal/store"
@@ -44,7 +45,7 @@ func (m *Model) startQuiz() error {
 		questionsCorrect: 0,
 		questionIndex: 1,
 		answerPool: answerPool,
-		readyForNextQuestion: true,
+		readyForNextQuestion: false,
 	}
 
 	return m.loadNextQuestion() 
@@ -141,6 +142,7 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.quiz.readyForNextQuestion {
 			m.quiz.questionSuccess = ""
 			m.quiz.questionErr = ""
+			m.quiz.readyForNextQuestion = false
 			m.loadNextQuestion()
 			break
 		}
@@ -169,6 +171,7 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiz.questionErr = "You got it wrong! The correct translation is " + m.quiz.correctAnswer
 		}
 
+		m.quiz.questionIndex++
 		m.quiz.questionedWordIDs = append(m.quiz.questionedWordIDs, m.quiz.target.ID)
 		m.quiz.readyForNextQuestion = true
 		m.screen = screenQuestion
@@ -182,14 +185,15 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) viewQuestion() string {
-	ret := m.answerMenu.view()
+	var b strings.Builder
+	b.WriteString(m.answerMenu.view())
 
 	if (m.quiz.questionSuccess != "") {
-		ret += "\n\n" + m.quiz.questionSuccess
+		b.WriteString(successStyle.Render("\n" + m.quiz.questionSuccess))
 	} else if (m.quiz.questionErr != "") {
-		ret += "\n\n" + m.quiz.questionErr
+		b.WriteString(errorStyle.Render("\n" + m.quiz.questionErr))
 	}
 
-	return ret + helpStyle.Render("\n↑/↓ to navigate • enter to select • p to hear word again • esc to exit quiz")
-
+	b.WriteString(helpStyle.Render("\n↑/↓ to navigate • enter to select • p to hear word again • esc to exit quiz"))
+	return b.String()
 }

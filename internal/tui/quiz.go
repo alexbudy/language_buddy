@@ -25,8 +25,11 @@ type quizState struct {
 	target         store.Word
 	targetText     string
 	correctAnswer  string
-	selectedAnswer string
-	wasCorrect     bool
+
+	readyForNextQuestion bool
+
+	questionErr string
+	questionSuccess string
 }
 
 func (m *Model) startQuiz() error {
@@ -41,6 +44,7 @@ func (m *Model) startQuiz() error {
 		questionsCorrect: 0,
 		questionIndex: 1,
 		answerPool: answerPool,
+		readyForNextQuestion: true,
 	}
 
 	return m.loadNextQuestion() 
@@ -121,7 +125,7 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-		// Allow selecting an answer by number (1-based)
+	// Allow selecting an answer by number (1-based)
 	n, err := strconv.Atoi(keyMsg.String())
 	if err == nil && n >= 1 && n <= len(m.answerMenu.items) {
 		m.answerMenu.cursor = n - 1
@@ -134,6 +138,13 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "down", "j":
 		m.answerMenu.down()
 	case "enter":
+		if m.quiz.readyForNextQuestion {
+			m.quiz.questionSuccess = ""
+			m.quiz.questionErr = ""
+			m.loadNextQuestion()
+			break
+		}
+
 		selected := m.answerMenu.selected().value
 		correct := selected == m.quiz.correctAnswer
 
@@ -152,11 +163,14 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// pronounce the correct translation once if correct
 			pronounceWord(m.quiz.target, m.selectedProfile.Lang2)
+			m.quiz.questionSuccess = "You got it right!"
 		} else {
 			m.quiz.incorrectWords = append(m.quiz.incorrectWords, m.quiz.target)
+			m.quiz.questionErr = "You got it wrong! The correct translation is " + m.quiz.correctAnswer
 		}
 
-		// TODO update quizState
+		m.quiz.questionedWordIDs = append(m.quiz.questionedWordIDs, m.quiz.target.ID)
+		m.quiz.readyForNextQuestion = true
 		m.screen = screenQuestion
 	case "p":
 		pronounceWord(m.quiz.target, m.selectedProfile.Lang1)
@@ -168,6 +182,14 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) viewQuestion() string {
-	return m.answerMenu.view() + helpStyle.Render("\n↑/↓ to navigate • enter to select • p to hear word again • esc to exit quiz")
+	ret := m.answerMenu.view()
+
+	if (m.quiz.questionSuccess != "") {
+		ret += "\n\n" + m.quiz.questionSuccess
+	} else if (m.quiz.questionErr != "") {
+		ret += "\n\n" + m.quiz.questionErr
+	}
+
+	return ret + helpStyle.Render("\n↑/↓ to navigate • enter to select • p to hear word again • esc to exit quiz")
 
 }

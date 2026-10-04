@@ -78,6 +78,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateManageWords(msg)
 		case screenWordDetails:
 			return m.updateWordDetails(msg)
+		case screenResults:
+			return m.updateResults(msg)
 		case screenGoodbye:
 			return m, tea.Quit
 	}
@@ -103,6 +105,8 @@ func (m Model) View() string {
 		return m.viewManageWords()
 	case screenWordDetails:
 		return m.viewWordDetails()
+	case screenResults:
+		return m.viewResults()
 	case screenGoodbye:
 		return titleStyle.Render("Exiting the program, thanks for training!") + "\n"
 	}

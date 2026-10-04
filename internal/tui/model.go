@@ -54,6 +54,8 @@ type Model struct {
 	manageWordsMenu manageWordsList
 	wordDetailsMenu wordDetails
 
+	resultsMenu choiceList // the list of words you got wrong during the quiz 
+
 	// profile states here
 	existingProfiles []store.Profile // all active profiles
 	selectedProfile store.Profile // Profile selected from the ProfileSelect screen

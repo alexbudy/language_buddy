@@ -143,7 +143,12 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiz.questionSuccess = ""
 			m.quiz.questionErr = ""
 			m.quiz.readyForNextQuestion = false
-			m.loadNextQuestion()
+			
+			if m.quiz.questionIndex > m.selectedProfile.DefaultNumQuestions {
+				m.screen = screenResults // end quiz, show results
+			} else {
+				m.loadNextQuestion()
+			}
 			break
 		}
 
@@ -174,6 +179,7 @@ func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.quiz.questionIndex++
 		m.quiz.questionedWordIDs = append(m.quiz.questionedWordIDs, m.quiz.target.ID)
 		m.quiz.readyForNextQuestion = true
+
 		m.screen = screenQuestion
 	case "p":
 		pronounceWord(m.quiz.target, m.selectedProfile.Lang1)

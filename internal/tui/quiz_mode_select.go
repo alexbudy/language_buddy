@@ -32,7 +32,7 @@ func (m *Model) buildQuizModeMenu() {
 	[]choiceItem {
 		newChoiceItem("Start quiz", "Start quiz"),
 		newSeparatorItem(),
-		newChoiceItem("Profile settings", profileSettings),
+		newChoiceItem("Quiz settings", profileSettings),
 		newChoiceItem("Manage words", manageWords),
 	})
 

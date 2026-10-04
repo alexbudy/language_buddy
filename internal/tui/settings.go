@@ -175,7 +175,7 @@ func (psc *profileSettingsConfig) decreaseNumAnswers() {
 
 func (m *Model) buildSettingsMenu() {
 	m.profileSettings = newProfileSettings(
-		"Profile Settings",
+		"Quiz Settings",
 		m.selectedProfile.Name,
 		m.selectedProfile.EnableSpeech,
 		m.selectedProfile.DefaultNumQuestions,

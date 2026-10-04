@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strconv"
 
+	"github.com/alexbudy/go_spanish_rewrite/internal/log"
 	"github.com/alexbudy/go_spanish_rewrite/internal/store"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -114,6 +116,54 @@ func removeFirst(s []string, val string) []string {
 
 
 func (m *Model) updateQuestion(msg tea.Msg) (tea.Model, tea.Cmd) {
+	keyMsg, ok := msg.(tea.KeyMsg)
+	if !ok {
+		return m, nil
+	}
+
+		// Allow selecting an answer by number (1-based)
+	n, err := strconv.Atoi(keyMsg.String())
+	if err == nil && n >= 1 && n <= len(m.answerMenu.items) {
+		m.answerMenu.cursor = n - 1
+		keyMsg = tea.KeyMsg{Type: tea.KeyEnter} // continue as if "enter" was pressed
+	}
+
+	switch keyMsg.String() {
+	case "up", "k":
+		m.answerMenu.up()
+	case "down", "j":
+		m.answerMenu.down()
+	case "enter":
+		selected := m.answerMenu.selected().value
+		correct := selected == m.quiz.correctAnswer
+
+		adjustment := 0.15 * float64(m.selectedProfile.DefaultNumAnswers)
+		if !correct {
+			adjustment *= -1
+		}
+		if err := m.store.UpdateRankingForWord(context.Background(), m.quiz.target.ID, 
+				m.selectedProfile.ID, m.selectedProfile.Lang1, m.selectedProfile.Lang2, adjustment); err != nil {
+			log.Error("Failed to update word ranking: %v", err) // TODO
+			return m, nil
+		}
+
+		if correct {
+			m.quiz.questionsCorrect++
+
+			// pronounce the correct translation once if correct
+			pronounceWord(m.quiz.target, m.selectedProfile.Lang2)
+		} else {
+			m.quiz.incorrectWords = append(m.quiz.incorrectWords, m.quiz.target)
+		}
+
+		// TODO update quizState
+		m.screen = screenQuestion
+	case "p":
+		pronounceWord(m.quiz.target, m.selectedProfile.Lang1)
+	case "esc":
+		m.screen = screenChooseQuizMode
+	}
+
 	return m, nil
 }
 
